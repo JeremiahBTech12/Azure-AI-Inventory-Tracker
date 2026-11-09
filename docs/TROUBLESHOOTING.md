@@ -20,7 +20,7 @@ These are the real issues I hit while building the **AI Inventory Tracker**, in 
 | 9 | Test sale dead-lettered (`MaxDeliveryCountExceeded`), stock unchanged | Function `process_sale` | `IndentationError` in `process_sale.py`, hidden because there was no Application Insights | Added Application Insights to see the error, fixed the indentation, and redeployed |
 | 10 | `Login failed for user ''. (18456)` | `azurerm_key_vault_secret.db_connection` | The connection string used .NET keywords (`User ID`, `Password`), which the ODBC driver ignores | Changed to ODBC keywords `UID` / `PWD`, then applied and restarted the Function App |
 | 11 | Logic App HTTP step: `404 Resource not found` | Logic App → HTTP action (Azure OpenAI) | The hand-typed OpenAI URI was malformed | Built the URI from the real endpoint in PowerShell, tested it, and pasted it into the Logic App |
-| 12 | Every step green, but no email arrived | Logic App → Send an email (V2) | The Outlook connector was signed in with a Microsoft account that has no Outlook mailbox | Sent from a dedicated Outlook.com mailbox to the Gmail inbox |
+| 12 | Every step green, but no email arrived | Logic App → Send an email (V2) | The Outlook connector was signed in with a Microsoft account that has no Outlook mailbox | Sent from a dedicated Outlook.com mailbox to a personal Yahoo inbox |
 | 13 | Email body was the literal text `body('HTTP')?[...]` | Logic App → Send an email (V2) | The expression was typed as plain text, not inserted as an expression | Inserted it through the **fx** expression editor, so it shows as a token |
 
 ---
@@ -538,7 +538,7 @@ The **Outlook.com** and **Office 365 Outlook** connectors send *from* an Outlook
 
 1. Created a free Outlook.com address used only for sending alerts, and signed in once to complete verification.
 2. In the email step, used **Change connection → Add new** and signed in with the new Outlook account.
-3. Kept **To** as the Gmail address. The connector can send *to* any address.
+3. Set **To** to a personal Yahoo (ymail) address. The connector can send *to* any provider; only the *sending* account has to be an Outlook mailbox.
 
 **Why not the Gmail connector?** Google restricts personal Gmail accounts in Logic Apps. The Gmail connector can only be used in workflows whose other steps are Google-approved services or certain built-in actions. This workflow uses the **SQL Server** connector, so a Gmail step would be blocked.
 
@@ -564,7 +564,7 @@ Deleted the text, opened the expression editor (the **fx** icon, or type `/` →
 
 **Result**
 
-The workflow ran end to end: Recurrence → SQL query → Azure OpenAI → email. The AI's restock recommendations arrived in Gmail.
+The workflow ran end to end: Recurrence → SQL query → Azure OpenAI → email. The AI's restock recommendations arrived in the Yahoo inbox.
 
 ---
 
