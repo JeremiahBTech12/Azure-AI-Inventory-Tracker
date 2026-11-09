@@ -1,0 +1,9 @@
+# Copy to terraform.tfvars and fill in real values. terraform.tfvars is git-ignored.
+#   Copy-Item terraform.tfvars.example terraform.tfvars
+
+yourname           = "yourname01"          # lowercase letters/numbers; must make globally unique names
+location           = "West US 3"
+sql_admin_login    = "sqladmin"
+sql_admin_password = "CHANGE_ME"           # strong password; never commit the real one
+alert_email        = "you@example.com"
+my_ip              = "203.0.113.10"        # (Invoke-RestMethod https://api.ipify.org)

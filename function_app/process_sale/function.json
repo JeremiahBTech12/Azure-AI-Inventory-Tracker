@@ -1,0 +1,15 @@
+{
+    "scriptFile": "process_sale.py",
+    "bindings": [
+        {
+            "name": "msg",
+            "type": "serviceBusTrigger",
+            "direction": "in",
+            "queueName": "sale-events",
+            "connection": "ServiceBusConnection",
+            "isSessionsEnabled": false
+
+        }
+    ]
+}
+

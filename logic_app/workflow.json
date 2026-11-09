@@ -1,0 +1,133 @@
+{
+    "definition": {
+        "metadata": {
+            "notes": {}
+        },
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "contentVersion": "1.0.0.0",
+        "triggers": {
+            "Recurrence": {
+                "recurrence": {
+                    "interval": 1,
+                    "frequency": "Day",
+                    "timeZone": "Eastern Standard Time",
+                    "schedule": {
+                        "hours": [
+                            6
+                        ],
+                        "minutes": [
+                            0
+                        ]
+                    }
+                },
+                "type": "Recurrence"
+            }
+        },
+        "actions": {
+            "Execute_a_SQL_query_(V2)": {
+                "runAfter": {},
+                "type": "ApiConnection",
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['sql']['connectionId']"
+                        }
+                    },
+                    "method": "post",
+                    "body": {
+                        "query": "SELECT\n    p.ProductName, p.CurrentStock, p.MinimumStock, p.UnitCost,\n    s.SupplierName, s.LeadTimeDays,\n    ISNULL(SUM(m.Quantity), 0) AS UnitsSoldLast30Days\nFROM Products p\nJOIN Suppliers s ON p.SupplierId = s.SupplierId\nLEFT JOIN StockMovements m\n    ON p.ProductId = m.ProductId\n    AND m.MovementType = 'SALE'\n    AND m.MovedAt >= DATEADD(day, -30, GETUTCDATE())\nGROUP BY p.ProductName, p.CurrentStock, p.MinimumStock, p.UnitCost,\n         s.SupplierName, s.LeadTimeDays\nORDER BY p.CurrentStock ASC;"
+                    },
+                    "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('default'))},@{encodeURIComponent(encodeURIComponent('default'))}/query/sql"
+                }
+            },
+            "HTTP": {
+                "runAfter": {
+                    "Execute_a_SQL_query_(V2)": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Http",
+                "inputs": {
+                    "uri": "https://<OPENAI_RESOURCE_NAME>.openai.azure.com/openai/deployments/gpt-4o-mini/chat/completions?api-version=2024-10-21",
+                    "method": "POST",
+                    "headers": {
+                        "api-key": "<OPENAI_API_KEY>"
+                    },
+                    "body": {
+                        "messages": [
+                            {
+                                "role": "system",
+                                "content": "You are an inventory analyst for a small retailer. Using the sales data provided, estimate days until stockout for each product (CurrentStock divided by average daily sales over 30 days), factor in supplier lead time, and produce a short prioritized restock list: product, recommended order quantity, supplier, and order-by date. Flag anything at or below MinimumStock as URGENT. Be concise and use plain text, not markdown tables."
+                            },
+                            {
+                                "role": "user",
+                                "content": "Today's inventory and 30-day sales data: @{string(body('Execute_a_SQL_query_(V2)')?['ResultSets']?['Table1'])}"
+                            }
+                        ],
+                        "temperature": 0.3,
+                        "max_tokens": 800
+                    }
+                },
+                "runtimeConfiguration": {
+                    "contentTransfer": {
+                        "transferMode": "Chunked"
+                    },
+                    "secureData": {
+                        "properties": [
+                            "inputs",
+                            "outputs"
+                        ]
+                    }
+                }
+            },
+            "Send_an_email_(V2)": {
+                "runAfter": {
+                    "HTTP": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ApiConnection",
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['outlook-1']['connectionId']"
+                        }
+                    },
+                    "method": "post",
+                    "body": {
+                        "To": "<RECIPIENT_EMAIL>",
+                        "Subject": "Daily Restock Recommendations - @{formatDateTime(convertFromUtc(utcNow(), 'Eastern Standard Time'), 'MMM d, yyyy')}",
+                        "Body": "<p class=\"editor-paragraph\">@{body('HTTP')?['choices']?[0]?['message']?['content']}</p>",
+                        "Importance": "Normal"
+                    },
+                    "path": "/v2/Mail"
+                }
+            }
+        },
+        "parameters": {
+            "$connections": {
+                "type": "Object",
+                "defaultValue": {}
+            }
+        }
+    },
+    "parameters": {
+        "$connections": {
+            "type": "Object",
+            "value": {
+                "sql": {
+                    "id": "/subscriptions/<SUBSCRIPTION_ID>/providers/Microsoft.Web/locations/<REGION>/managedApis/sql",
+                    "connectionId": "/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/rg-inventory-<name>/providers/Microsoft.Web/connections/sql",
+                    "connectionName": "sql",
+                    "connectionProperties": {}
+                },
+                "outlook-1": {
+                    "id": "/subscriptions/<SUBSCRIPTION_ID>/providers/Microsoft.Web/locations/<REGION>/managedApis/outlook",
+                    "connectionId": "/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/rg-inventory-<name>/providers/Microsoft.Web/connections/outlook-1",
+                    "connectionName": "outlook-1",
+                    "connectionProperties": {}
+                }
+            }
+        }
+    }
+}
