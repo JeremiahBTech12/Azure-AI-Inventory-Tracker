@@ -23,7 +23,7 @@ Stock counts update **within seconds of a sale**, and every morning the store ow
 | **What I built** | A real-time sales pipeline (Service Bus → Azure Function → Azure SQL) and a daily AI analysis (Logic App → Azure OpenAI → email). |
 | **Infrastructure** | 20+ Azure resources in Terraform, with secrets in Key Vault read by managed identities |
 | **Reliability** | Queue-based decoupling, transactional writes with an audit trail, automatic retry and dead-lettering |
-| **Proof it works** | Test sale: Laptop stock **15 → 13**, audit row written, daily email delivered. See the [demo script](docs/DEMO.md). |
+| **Proof it works** | Test sale: Laptop stock **15 → 13**, audit row written, daily email delivered. See [How to run it](#how-to-run-it). |
 | **Debugging record** | [13 real issues](docs/TROUBLESHOOTING.md), each with root cause and fix |
 
 ---
@@ -155,9 +155,29 @@ WATCH
 │   └── send_test_sale.ps1       # Simulates the POS by sending a sale event
 └── docs/
     ├── ARCHITECTURE.md          # Design decisions, security, roadmap
-    ├── TROUBLESHOOTING.md       # 13 real issues: error, root cause, fix
-    └── DEMO.md                  # 10-minute interview walkthrough
+    └── TROUBLESHOOTING.md       # 13 real issues: error, root cause, fix
 ```
+
+---
+
+## How to run it
+
+1. **Deploy the infrastructure.** Copy `terraform.tfvars.example` to `terraform.tfvars`, fill in your values, then run:
+
+   ```powershell
+   terraform init
+   terraform apply
+   ```
+
+2. **Send a test sale** to the Service Bus queue:
+
+   ```powershell
+   .\scripts\send_test_sale.ps1 -Name <yourname> -ProductId 1 -Quantity 2
+   ```
+
+3. **Confirm the stock decreased.** After about 30 seconds, run [`sql/03_verify.sql`](sql/03_verify.sql) in the InventoryDB Query editor. The Laptop's `CurrentStock` drops by 2, and a `SALE` row appears in `StockMovements`.
+
+First-time setup (database schema, Function code, Logic App) is covered step by step in the next section.
 
 ---
 
