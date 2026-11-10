@@ -21,7 +21,7 @@ Stock counts update **within seconds of a sale**, and every morning the store ow
 |---|---|
 | **Business problem** | Small retailers run out of best sellers and over-stock slow movers because ordering runs on manual counts and gut feel. |
 | **What I built** | A real-time sales pipeline (Service Bus → Azure Function → Azure SQL) and a daily AI analysis (Logic App → Azure OpenAI → email). |
-| **Infrastructure** | 20+ Azure resources in Terraform, with secrets in Key Vault read by managed identities |
+| **Infrastructure** | 20+ Azure resources in Terraform, with secrets in Key Vault read by managed identities. The one piece not yet in code is the Logic App's workflow steps (built in the designer, exported to [`logic_app/workflow.json`](logic_app/workflow.json)). |
 | **Reliability** | Queue-based decoupling, transactional writes with an audit trail, automatic retry and dead-lettering |
 | **Proof it works** | Test sale: Laptop stock **15 → 13**, audit row written, daily email delivered. See [How to run it](#how-to-run-it). |
 | **Debugging record** | [13 real issues](docs/TROUBLESHOOTING.md), each with root cause and fix |
@@ -260,6 +260,8 @@ All 13 issues are written up in **[docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING
 | `pyodbc` build fails: needs Visual C++ 14.0 | pip built for Windows / Python 3.14, but the target is Linux / Python 3.11 | `pip install --platform manylinux2014_x86_64 --only-binary=:all: --python-version 3.11` |
 | Logic App: every step green, but no email | The connector's account had no Outlook mailbox | Sent from a dedicated Outlook.com mailbox |
 
+**Biggest lesson: add observability on day one.** The most time I lost was on failures I couldn't see. Until Application Insights was in place, the only evidence was a dead-lettered message with no reason attached.
+
 ---
 
 ## Security
@@ -288,7 +290,8 @@ Key Vault and Azure OpenAI are set to **purge on destroy**, so the same names ca
 ## What I'd build next
 
 - **Idempotent processing:** dedupe on `sale_id`, because Service Bus is at-least-once
-- **Everything as code:** move the Logic App definition into Terraform
+- **Dead-letter alerting:** an Azure Monitor alert on the `sale-events` dead-letter count, so a failed sale is noticed right away instead of waiting for someone to check
+- **Everything as code:** move the Logic App's workflow from the designer into Terraform
 - **CI/CD:** GitHub Actions with `fmt`, `validate` and `plan` on pull requests, and an OIDC-authenticated deploy on merge
 - **Zero-secret auth:** Entra ID for SQL, Service Bus and OpenAI through managed identities, plus private endpoints
 - **Staff web UI** on the provisioned Web App, and real-time low-stock alerts through Azure Monitor

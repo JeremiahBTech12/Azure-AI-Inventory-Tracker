@@ -102,6 +102,8 @@ The POS knows nothing about the database. It only needs permission to send to on
 - It costs fractions of a cent per run.
 - The workflow definition is exported to [`logic_app/workflow.json`](../logic_app/workflow.json), with secrets replaced by placeholders, so it lives in source control.
 
+**Known gap:** Terraform creates the Logic App resource, but its steps were built in the portal designer. The export is a record, not a deployment: a fresh `terraform apply` produces an empty workflow. This is the one piece of the system not yet in code. Moving it into Terraform is on the roadmap below.
+
 **Prompt design:** The SQL query does the aggregation (units sold in the last 30 days, lead time, current and minimum stock). The model gets a compact, structured table instead of raw transactions. That keeps token usage low and the reasoning focused. The system prompt asks for days-until-stockout, an order-by date based on supplier lead time, and an **URGENT** flag at or below the minimum stock level. `temperature = 0.3` keeps day-to-day output consistent.
 
 ### 7. Observability
@@ -109,6 +111,8 @@ The POS knows nothing about the database. It only needs permission to send to on
 **Decision:** Application Insights (workspace-based, on Log Analytics) wired to the Function.
 
 **Why:** It wasn't in the original design, and I added it after a failure I couldn't see. Without it, the only evidence was `MaxDeliveryCountExceeded` on a dead-lettered message. With it, **Monitor → Invocations** showed the exact Python exception within minutes. Lesson: observability is part of the minimum viable infrastructure, not a later add-on.
+
+**Gap:** dead-lettered messages are still found by looking. Nothing alerts on them yet. The next step is an Azure Monitor metric alert on the queue's `DeadletteredMessages` count (greater than 0) sent to an action group, so a failed sale is noticed within minutes. It's in the roadmap below.
 
 ### 8. Region choice: West US 3
 
@@ -140,6 +144,7 @@ East US blocked new SQL servers (`ProvisioningDisabled`), and App Service B1 quo
 
 - [ ] **Idempotency:** add a unique index on `StockMovements.Reference` for sales, and skip `sale_id`s that were already processed, so at-least-once delivery can never double-count.
 - [ ] **Move the Logic App definition into Terraform** (`azurerm_resource_group_template_deployment` or `azapi`) so the whole stack is code.
+- [ ] **Dead-letter alerting:** an `azurerm_monitor_metric_alert` on the Service Bus namespace's `DeadletteredMessages` metric, filtered to `sale-events`, with an email action group.
 - [ ] **Model deployment alignment:** Terraform provisions a `gpt-5-mini` deployment, while the Logic App currently calls a `gpt-4o-mini` deployment in the same account. Pick one and manage it in Terraform. Moving to `gpt-5-mini` means switching `max_tokens` to `max_completion_tokens` and using the default temperature.
 - [ ] **CI/CD:** GitHub Actions with `terraform fmt`, `validate`, `plan` on pull requests, and an OIDC-authenticated Function deploy on merge.
 - [ ] **Staff web UI** on the provisioned Web App, for product management, receiving shipments, and setting minimum stock.
