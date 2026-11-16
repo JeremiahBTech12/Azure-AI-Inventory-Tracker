@@ -336,9 +336,7 @@ PS> az servicebus message send --resource-group ... --queue-name sale-events --b
 'message' is misspelled or not recognized by the system.
 ```
 
-**Cause**
-
-The guide's Step 9 uses `az servicebus message send`, which doesn't exist. The Azure CLI can manage Service Bus namespaces and queues, but it can't send messages to them.
+**Cause:** I tried `az servicebus message send`, but that command doesn't exist. The Azure CLI manages namespaces and queues, but it can't send messages.
 
 **Fix (portal)**
 
@@ -404,7 +402,7 @@ The Function received the message but failed on all 3 tries (`max_delivery_count
    application_insights_connection_string = azurerm_application_insights.main.connection_string
    ```
 
-**Actual error (found in Monitor → Invocations)**
+**Actual error:** An `IndentationError` in `process_sale.py`. The file had broken indentation, likely mixed tabs and spaces from pasting code between editors.
 
 ```text
 Exception: IndentationError: unexpected indent (process_sale.py, line 38)
