@@ -226,7 +226,7 @@ az servicebus namespace show -g rg-inventory-<name> -n sbns-inventory-<name> --q
 
 **Error**
 
-When logging in to **InventoryDB → Query editor** (Step 7), the portal said the client's IP address isn't allowed to access the server.
+When I logged in to **InventoryDB → Query editor** to create the database schema, the portal said the client's IP address isn't allowed to access the server.
 
 **Cause**
 
@@ -373,7 +373,7 @@ If nothing prints, the message was sent (Service Bus answers with `201 Created` 
 
 **Symptom**
 
-After the Step 9 test message was sent, Laptop stock stayed at 15. The `sale-events` queue showed **Dead-letter = 1**, and the dead-lettered message's `DeadLetterReason` was `MaxDeliveryCountExceeded`.
+After I sent the first test sale message, Laptop stock stayed at 15. The `sale-events` queue showed **Dead-letter = 1**, and the dead-lettered message's `DeadLetterReason` was `MaxDeliveryCountExceeded`.
 
 **What that means**
 
@@ -412,7 +412,7 @@ Exception: IndentationError: unexpected indent (process_sale.py, line 38)
 
 **Cause**
 
-When the code was copied from the guide, the indentation got broken, most likely a mix of tabs and spaces. Python couldn't load the file, so every message failed before any database code ran.
+Because of the broken indentation, Python couldn't load the file, so every message failed before any database code ran.
 
 **Fix**
 
@@ -441,7 +441,7 @@ Login failed for user ''. (18456) (SQLDriverConnect)")
 
 **Cause**
 
-The user name in the error is **empty** (`''`). The guide's connection string uses .NET-style keywords (`User ID=...;Password=...`), but `pyodbc` passes the string to the **ODBC** driver, which expects `UID=` and `PWD=`. The driver silently ignored the keywords it didn't recognize and tried to log in with no user name.
+The user name in the error is **empty** (`''`). The connection string I started with used .NET-style keywords (`User ID=...;Password=...`), but `pyodbc` passes the string to the **ODBC** driver, which expects `UID=` and `PWD=`. The driver silently ignored the keywords it didn't recognize and tried to log in with no user name.
 
 This error was also useful progress. It showed that the Key Vault reference, ODBC Driver 18, the network and the SQL firewall all worked, and that only the login details were wrong.
 
