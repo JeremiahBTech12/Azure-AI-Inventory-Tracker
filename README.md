@@ -1,7 +1,6 @@
 # Azure-AI-Inventory-Tracker
 
-## **Video Walkthrough:** https://www.loom.com/share/99f83440f3644dbaaf8488eb7cd55452
-
+## **Video Walkthrough:** https://www.loom.com/share/0dd66dcb772b4d9692dcd4fac1d0743a
 ##
 Jeremiah Brown | Azure Cloud Engineer | LinkedIn: https://www.linkedin.com/in/jeremiah-brown12/
 
