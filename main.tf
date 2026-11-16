@@ -9,6 +9,11 @@ terraform {
 
 provider "azurerm" {
   features {
+    # The Logic App designer creates API connections (sql, outlook) and App Insights adds a
+    # Smart Detection action group outside Terraform; let destroy remove them with the group.
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
     key_vault {
       purge_soft_delete_on_destroy    = true
       recover_soft_deleted_key_vaults = true
