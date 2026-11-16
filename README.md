@@ -1,7 +1,7 @@
 # Azure-AI-Inventory-Tracker
 
 Jeremiah Brown | Azure Cloud Engineer | LinkedIn: https://www.linkedin.com/in/jeremiah-brown12/
-
+Video Walkthrough: https://www.loom.com/share/99f83440f3644dbaaf8488eb7cd55452
 **Event-driven inventory management with AI-generated restock recommendations, built on Azure with Terraform, Python and PowerShell.**
 
 ![Azure](https://img.shields.io/badge/Microsoft_Azure-0078D4?style=flat&logo=microsoftazure&logoColor=white)
